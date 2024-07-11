@@ -43,11 +43,12 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 ### 3. Download MARQO Docker
 
 1. **Download directly**:
-  placeholder ...
+  - Go to [Releases](https://github.com/igorafsouza/MARQO/releases/download/v1.0-beta)
+  - Download `marqo-v1-local.tar.gz`
 
 3. **Command line**:
   ```sh
-  wget https://github.com/yourusername/yourrepository/releases/download/v1.0.0/my-jupyter-image.tar.gz
+  wget https://github.com/igorafsouza/MARQO/releases/download/v1.0-beta/marqo-v1-local.tar.gz
   ```
 
 ### 4. Extract the tar.gz file
