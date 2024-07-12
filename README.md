@@ -51,19 +51,19 @@ docker run --rm --privileged tonistiigi/binfmt --install all
   wget https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/marqo-v1.0.0.tar.gz
   ```
 
-### 4. Extract the tar.gz file
+### 4. Extract the tar.gz file (Browsers such as Safari can decompress it automatically)
   ```sh
   tar -xzvf marqo-v1.0.0.tar.gz
   ```
 
 ### 5. Load the Docker Image
   ```sh
-  docker load -i marqo-v1.0.0
+  docker load -i marqo-v1.0.0.tar
   ```
 
 ### 6. Run the Docker
   ```sh
-  docker run --platform linux/amd64 -p 8888:8888 -v $(pwd):/app marqo-v1.0.0
+  docker run --platform linux/amd64 -p 8888:8888 -v $(pwd):/app marqo-v1.0.0:latest
   ```
 
 ### 7. Access Jupyter Notebook
