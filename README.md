@@ -63,7 +63,7 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 
 ### 6. Run the Docker
   ```sh
-  docker run --platform linux/amd64 -p 8888:8888 -v $(pwd):/app marqo-v1.0.0
+  docker run --platform linux/amd64 -p 8888:8888 marqo-v1.0.0
   ```
 
 ### 7. Access Jupyter Notebook
