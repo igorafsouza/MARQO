@@ -62,9 +62,16 @@ docker run --rm --privileged tonistiigi/binfmt --install all
   ```
 
 ### 6. Run the Docker
+To run the Docker container and allow the Jupyter Notebook to access local files, you need to mount the directory containing your data into the container. Replace /path/to/your/data with the full path to the directory on your host machine that contains the data you want to analyze.
+
   ```sh
-  docker run --platform linux/amd64 -p 8888:8888 marqo-v1.0.0
+  docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/images:/mnt/data marqo-v1.0.0
   ```
+
+Inside the Jupyter Notebook, you can access your data files in the `/mnt/data` directory. Use `/mnt/data` for both:
+   - "Path to raw images"
+   - "Path to output folder"
+In Launch/Review Application text boxes. 
 
 ### 7. Access Jupyter Notebook
   In your web browser, navigate to `http://localhost:8888` to access the Jupyter Notebook 
