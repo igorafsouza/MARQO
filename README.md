@@ -48,7 +48,7 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 
 3. **Command line**:
   ```sh
-  wget https://github.com/igorafsouza/MARQO/releases/download/v1.0-beta/marqo-v1.0.0.tar.gz
+  wget https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/marqo-v1.0.0.tar.gz
   ```
 
 ### 4. Extract the tar.gz file
