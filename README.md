@@ -51,9 +51,9 @@ docker run --rm --privileged tonistiigi/binfmt --install all
   wget https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/marqo-v1.0.0.tar.gz
   ```
 
-### 4. Extract the tar.gz file (Browsers such as Safari can decompress it automatically)
+### 4. Extract the tar.gz file (Browsers such as Safari may decompress it automatically)
   ```sh
-  tar -xzvf marqo-v1.0.0.tar.gz
+  gunzip marqo-v1.0.0.tar.gz
   ```
 
 ### 5. Load the Docker Image
