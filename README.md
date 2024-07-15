@@ -60,6 +60,7 @@ docker run --rm --privileged tonistiigi/binfmt --install all
   ```sh
   docker load -i marqo-v1.0.0.tar
   ```
+  If loading the Docker Image you encounter the error `read-only file system`, please refer to the [Troubleshooting Guide]()
 
 ### 6. Run the Docker
 To run the Docker container and allow the Jupyter Notebook to access local files, you need to mount the directory containing your data into the container. Replace `/path/to/your/images` with the full path to the directory on your host machine that contains the data you want to analyze.
