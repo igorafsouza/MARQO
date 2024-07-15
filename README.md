@@ -46,19 +46,24 @@ docker run --rm --privileged tonistiigi/binfmt --install all
   - Go to [Releases](https://github.com/igorafsouza/MARQO/releases)
   - Download `marqo-v1.0.0.tar.gz`
 
-2. **or use Command line**:
+2. **Or use Command Line from Terminal/Command Prompt**:
   ```sh
   wget https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/marqo-v1.0.0.tar.gz
   ```
 
-***Execute the following steps in Command Prompt or Terminal***
-
 ### 4. Extract the tar.gz file (Browsers such as Safari may decompress it automatically)
+
+1. **Run Command Line in Terminal (Recommended for Linux and macOS)**:
   ```sh
   gunzip marqo-v1.0.0.tar.gz
   ```
+2. **Extract directly (Recommended for Windows)**:
+   - Download [7-Zip](https://www.7-zip.org/)
+   - Go to the folder where you downloaded marqo-v1.0.0.tar.gz, right-click on it
+   - On 7-Zip choose "Extract Here"
 
-### 5. Load the Docker Image
+### 5. Load the Docker Image from Terminal/Command Prompt
+- Go to the directory where you extracted the docker and run the command
   ```sh
   docker load -i marqo-v1.0.0.tar
   ```
@@ -67,9 +72,14 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 ### 6. Run the Docker
 To run the Docker container and allow the Jupyter Notebook to access local files, you need to mount the directory containing your data into the container. Replace `/path/to/your/images` with the full path to the directory on your host machine that contains the data you want to analyze.
 
-  ```sh
-  docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/images:/mnt/data marqo-v1.0.0
-  ```
+   - From the Terminal (in Linux or macOS) run:
+     ```sh
+     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/images:/mnt/data marqo-v1.0.0
+     ```
+   - From the Command Prompt (Windows) run:
+     ```sh
+     docker run --platform linux/amd64 -p 8888:8888 -v "/path/to/your/images:/mnt/data" marqo-v1.0.0
+     ```
 
 Inside the Jupyter Notebook, you can access your data files in the `/mnt/data` directory. Use `/mnt/data` for both:
    - "Path to raw images"
