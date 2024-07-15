@@ -27,13 +27,13 @@
 ## 4. Check Disk Space
 1. Click the Apple menu.
 2. Select `About This Mac`.
-3. Go to the `Storage` tab and ensure there is enough available space.
+3. Go to the `Storage` tab and ensure there is enough available space (>10 GB).
 
 ## 5. Increase Docker Disk Image Size
 1. Open Docker Desktop.
 2. Go to `Preferences`.
 3. Select the `Resources` tab.
-4. Increase the disk image size as needed.
+4. Increase the disk image size as needed (>10 GB).
 
 ## For Linux
 ## 1. Restart Docker Service
@@ -59,7 +59,7 @@ sudo chown -R root:root /var/lib/docker
    ```
 
 ## 4. Check Disk Space
-1. Ensure there is sufficient disk space available:
+1. Ensure there is sufficient disk space available (>10 GB):
    ```sh
    df -h /var/lib/docker
    ```
@@ -83,13 +83,13 @@ sudo chown -R root:root /var/lib/docker
 
 ## 3. Check Disk Space
 1. Open `File Explorer`.
-2. Go to `This PC` and check the available space on your drive.
+2. Go to `This PC` and check the available space on your drive (>10 GB).
 
 ## 4. Increase Docker Disk Image Size
 1. Open Docker Desktop.
 2. Go to `Settings`.
 3. Select the `Resources` tab.
-4. Increase the disk image size as needed.
+4. Increase the disk image size as needed (>10 GB).
 
 ## 5. Load the Docker Image with Sufficient Permissions
 1. Open a command prompt with administrative privileges.
