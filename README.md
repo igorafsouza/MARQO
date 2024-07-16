@@ -62,29 +62,57 @@ docker run --rm --privileged tonistiigi/binfmt --install all
    - Go to the folder where you downloaded marqo-v1.0.0.tar.gz, right-click on it
    - On 7-Zip choose "Extract Here"
 
-### 5. Load the Docker Image from Terminal/Command Prompt
-- Go to the directory where you extracted the docker and run the command
+### 5. Load the Docker Image
+- Make sure Docker is running
+- Open Terminal or Command Prompt
+- Go to the directory where you extracted the docker using similar commands:
+  Linux/macOS (Terminal)
+  ```sh
+  cd /path/to/folder/where/docker_tar_file_is
+  ```
+  
+  Windows (Command Prompt)
+  ```sh
+  cd /d "C:\path\to\folder\where\docker_tar_file_is"
+  ```
+  
+- Load the Docker file
   ```sh
   docker load -i marqo-v1.0.0.tar
   ```
   If loading the Docker Image you encounter the error `read-only file system`, please refer to the [Troubleshooting Guide](https://github.com/igorafsouza/MARQO/blob/main/TROUBLESHOOTING.md) for macOS, Windows, and Linux.
 
 ### 6. Run the Docker
-To run the Docker container and allow the Jupyter Notebook to access local files, you need to mount the directory containing your data into the container. Replace `/path/to/your/images` with the full path to the directory on your host machine that contains the data you want to analyze.
-
+To run the Docker container and allow the Jupyter Notebook to access the local files, you need to mount the directory containing your data/images. Replace `/path/to/your/data` with the full path of the directory on your local machine that contains the data/images you want to analyze.
+   - Make sure Docker is running
    - From the Terminal (in Linux or macOS) run:
      ```sh
-     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/images:/mnt/data marqo-v1.0.0
+     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/data:/mnt/data marqo-v1.0.0
      ```
    - From the Command Prompt (Windows) run:
      ```sh
-     docker run --platform linux/amd64 -p 8888:8888 -v "/path/to/your/images:/mnt/data" marqo-v1.0.0
+     docker run --platform linux/amd64 -p 8888:8888 -v "C:\path\to\your\data:/mnt/data" marqo-v1.0.0
      ```
-
-Inside the Jupyter Notebook, you can access your data files in the `/mnt/data` directory. Use `/mnt/data` for both:
-   - "Path to raw images"
-   - "Path to output folder"
-In Launch/Review Application text boxes. 
-
+     
 ### 7. Access Jupyter Notebook
-  In your web browser, navigate to `http://localhost:8888` to access the Jupyter Notebook 
+In your web browser, navigate to `http://localhost:8888` to access Jupyter Notebook. Once opened you will see the notebook `MARQO_master_application_v1.ipynb`. Once you click on it, a new web page will open. Please, locate the `Voila` button on the top menu bar. Click on `Voila` button to start the **Application**, in a new web page.
+
+When you run the Docker container with the `-v /path/to/your/data:/mnt/data` option, it creates a mapping between a directory on your host machine and a directory inside the container. This allows the Docker container to access files and folders within the specified directory on your host machine.
+   - Host Directory: `/path/to/your/data` (replace with your actual directory)
+   - Container Directory: `/mnt/data`
+
+**Using the Applications**
+
+There are two applications you can use: ***Launch** and **Review***. 
+
+**Launch Application**
+
+In the ***Launch Application***, after you choose the technology, you must use the folder `/mnt/data/` as the root directory (currently set as default) and complete the path to your images.
+   - "Path to raw images": Specify the path to your raw images starting from `/mnt/data`. If your images are directly in the root `/mnt/data`, you only need to pass it.
+   - "Path to output folder": Specify the path where you want to create the output folder starting from `/mnt/data` (the directory must already exist). If you want to create the output folder directly in the root `/mnt/data`, you only need to pass it.
+
+**Review Application**
+
+In the Review Application, use `/mnt/data/` as the base path.
+   - "Path to sample folder": Specify the path to your sample folder starting from `/mnt/data` until the sample output folder (e.g. `/mnt/data/sample_name`).
+
