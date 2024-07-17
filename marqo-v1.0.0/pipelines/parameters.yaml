@@ -1,0 +1,24 @@
+IMAGE:
+  TILE_DIMENSION: 1000  #size of both height and width of tiles run in parallel
+  VISUAL_PER_TILE: True  #exports multichannel TIFs for all AEC channels in panel per ROI. Set to True or False
+  MAG_TO_ANALYZE_FOR_MATRIX: 10  #mag that deconvolution downsclaes for dyanmic matrix determination
+
+REGISTRATION:
+  BUFFER: 150  #number of pixels added on sides of ROI to account for registration shifting
+  ITERATIONS: 500  #number of repeats for prelim registration
+  RESOLUTIONS: 8  #sensitity for prelim registration
+  SPATIAL_SAMPLES: 2000  #sensitivity for prelim registration
+
+SEGMENTATION:
+  SEGMENTATION_BUFFER: 10  #compositive segmentation overlap in tiles
+  PROB: 0.03  # minimum probability of an object to be considered as one nucleus
+  NMS: 0.5  # IoU threshold to consider two putative nuclei as the same entity
+  NOISE_THRESHOLD: 5  # amount of pixels in any direction that a cell will be considered the same cell
+  PERC_CONSENSUS: 40  # keep the cell if it is segmented in at least Y % of all images in the panel
+
+QUANTIFICATION:
+  NUM_PIXELS_THRES_FOR_PEAK: 0.01  #percentage of pixels threshold of total pixels in area analyzed to determine if local peak is real
+  HEME_THRESH_DEEMEDRBC: 0.30  #if median hema amount across all counter-stains per cell is below this value, cell will get thrown out as it's assumed it's a RBC
+
+CLASSIFICATION:
+  BW: 5
