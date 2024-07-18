@@ -120,3 +120,21 @@ In the Review Application, use `/mnt/data/` as the base path.
 Please, download the demo videos to use MARQO:
    - [Launch Application](https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/Buckup-et-al-2024_sup-video-1.mov)
    - [Review Application](https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/Buckup-et-al-2024_sup-video-2.mov)
+
+### 9. Sample Images
+   - MICSSS Single Sample
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=15vFqWmK4Mly2Q52e74qvQ-0dPknOnPP2) (55MB)
+      - [Image Example 2](https://drive.google.com/uc?export=download&id=14_QsEPqOs1DWnQbC6C3iBJqpYRV5NM2Y) (49MB)
+      - [Image Example 3](https://drive.google.com/uc?export=download&id=1P43IdH4bGBmxRTE3kh-hfXZwmP61q8Ra) (69MB)
+    
+   - MICSSS Multiple Samples
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1gtSbv7iC-4QxRpEThmjq_f4shTCkAVzV) (247MB)
+      - [Image Example 2](https://drive.google.com/uc?export=download&id=10NvZo7J5Lb8pWadKSyOLQOzUj524a2Mu) (309MB)
+      - [Image Example 3](https://drive.google.com/uc?export=download&id=1GpC7ax9tu4KFLlmhjQMBQ7Y4VGHq6xid) (257MB)
+    
+   - Singleplex IHC
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1LqTw2_DvqJDGPP4q9K57iE_CrU4QdCQW) (25MB)
+    
+   - COMET
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1jLnSDHofK_AhITUDEJLah7dcDFCgTg8w) (12GB)
+
