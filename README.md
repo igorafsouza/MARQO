@@ -123,18 +123,18 @@ Please, download the demo videos to use MARQO:
 
 ### 9. Sample Images
    - MICSSS Single Sample
-      - [Image Example 1](https://drive.google.com/uc?export=download&id=15vFqWmK4Mly2Q52e74qvQ-0dPknOnPP2) (55MB)
-      - [Image Example 2](https://drive.google.com/uc?export=download&id=14_QsEPqOs1DWnQbC6C3iBJqpYRV5NM2Y) (49MB)
-      - [Image Example 3](https://drive.google.com/uc?export=download&id=1P43IdH4bGBmxRTE3kh-hfXZwmP61q8Ra) (69MB)
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=10F_yMlT0nzyhcGl4-_FeuKbazZTc53h0) (55MB)
+      - [Image Example 2](https://drive.google.com/uc?export=download&id=16B_vNmer8nW_9G0KNkYzvx2WUqwanFFh) (49MB)
+      - [Image Example 3](https://drive.google.com/uc?export=download&id=1BO1XOFqxLHwAEjvsWgvvT3tiPoSeriRh) (69MB)
     
    - MICSSS Multiple Samples
-      - [Image Example 1](https://drive.google.com/uc?export=download&id=1gtSbv7iC-4QxRpEThmjq_f4shTCkAVzV) (247MB)
-      - [Image Example 2](https://drive.google.com/uc?export=download&id=10NvZo7J5Lb8pWadKSyOLQOzUj524a2Mu) (309MB)
-      - [Image Example 3](https://drive.google.com/uc?export=download&id=1GpC7ax9tu4KFLlmhjQMBQ7Y4VGHq6xid) (257MB)
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1wRsxVn2ariXU2Q_4n6_UDVuCbvplGXYZ) (247MB)
+      - [Image Example 2](https://drive.google.com/uc?export=download&id=1TCaIq6xUFaw_EdeRIpAXrLhZOlbm7ig2) (309MB)
+      - [Image Example 3](https://drive.google.com/uc?export=download&id=1Qhhy5hmdiGHtODozcZHAfHN56Z0am70b) (257MB)
     
    - Singleplex IHC
-      - [Image Example 1](https://drive.google.com/uc?export=download&id=1LqTw2_DvqJDGPP4q9K57iE_CrU4QdCQW) (25MB)
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1FEjfMc1XVV-VGsM8hareU4OWxF8Kv5e7) (25MB)
     
    - COMET
-      - [Image Example 1](https://drive.google.com/uc?export=download&id=1jLnSDHofK_AhITUDEJLah7dcDFCgTg8w) (12GB)
+      - [Image Example 1](https://drive.google.com/uc?export=download&id=1PsTXUakZ-SjzubqFynsMgRRP1rq12Slo) (12GB)
 
