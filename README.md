@@ -1,6 +1,8 @@
-# MARQO
+# MARQO 
 
-## Step-by-Step Instructions
+## Multiplex-imaging Analysis, Registration, Quantification, and Overlaying
+
+### Step-by-Step Instructions
 
 If Docker is not installed, follow the instructions for your operating system:
 
