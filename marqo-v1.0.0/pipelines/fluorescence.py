@@ -30,14 +30,10 @@ class IF:
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, parent_class = None):
+    def __init__(self, config_file = None):
         self.technology = 'if'
-        self.parent_class = parent_class
+        self.config_file = config_file
 
-
-    def __getattr__(self, name):
-        return self.parent_class.__getattribute__(name)
- 
 
     def initialization(self, images_names: List[str], sample_name: str, marker_name_list: str, dna_marker: str, ref_channels: List[str], output_resolution: int, 
                        raw_images_path: str, output_path: str, cyto_distances: List[int]):

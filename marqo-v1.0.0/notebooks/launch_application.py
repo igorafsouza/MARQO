@@ -370,7 +370,7 @@ class Notebook:
 
     
     def masking_and_prelimreg(self):
-        if self.technology.image_names == []:
+        if self.technology.image_names == {}:
             print('Please, provide first the images to proceed.')
             return
         
@@ -625,7 +625,7 @@ class Notebook:
 
             results = []
 
-            num_cores = 2
+            num_cores = 1
 
             try:
                 #with joblib.Parallel(n_jobs=num_cores) as parallel:

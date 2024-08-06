@@ -26,13 +26,9 @@ class TMA:
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, parent_class = None):
+    def __init__(self, config_file = None):
         self.technology = 'tma'
-        self.parent_class = parent_class
-
-
-    def __getattr__(self, name):
-        return self.parent_class.__getattribute__(name)
+        self.config_file = config_file
 
 
     def initialization(self, images_names: List[str], sample_name: str, marker_name_list: str, output_resolution: int, 
@@ -102,15 +98,6 @@ class TMA:
         return tile_map.get_tiling_map(registered_masks, tissue_masks)
 
 
-    def deconvolution(self, registered_masks: List):
-        """
-        
-        """
-        color_matrix = ColorMatrix()
-        color_matrix.set_parameters(self.config_file)
-        color_matrix.global_evaluation(registered_masks)
-
-
     def analysis(self, paramaters_array):
         '''
         This function is called by a different entry-point (from the command-line). It will perform all steps 
@@ -125,11 +112,9 @@ class TMA:
         registered_masks = paramaters_array[1]
         mother_coordinates = paramaters_array[2]
 
-        color_deconv_matrices = Utils.get_decon_matrix(self.config_file)
-        
         registration = ElasticRegistration()
         registration.set_parameters(self.config_file)
-        registered_rois, linear_shifts, visualization_figs = registration.get_transformed_images(mother_coordinates, registered_masks, color_deconv_matrices, roi_index)
+        registered_rois, linear_shifts, visualization_figs = registration.get_transformed_images(mother_coordinates, registered_masks, roi_index)
 
         # 2. Segmentation of the registred rois
         stardist = StardistSegmentation()
@@ -147,7 +132,7 @@ class TMA:
         signal = Signal()
         signal.set_parameters(self.config_file)
         results = signal.quantify(roi_index, registered_rois, linear_shifts, 
-                                  mother_coordinates, registered_masks, color_deconv_matrices,
+                                  mother_coordinates, registered_masks,
                                   tile_tissue_percentage, visualization_figs, 
                                   **results)
 

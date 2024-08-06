@@ -35,7 +35,7 @@ class CyIFTechnology(Technology):
 
 
     def initialization(self):
-        self.pipeline.initialization(self.image_names.values(), self.sample_name, self.n_images, self.output_resolution, self.raw_images_path, self.output_path)
+        self.pipeline.initialization(self.image_names, self.sample_name, self.n_images, self.output_resolution, self.raw_images_path, self.output_path)
 
 
     def masking(self, **kwargs):

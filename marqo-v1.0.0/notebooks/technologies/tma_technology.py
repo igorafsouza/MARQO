@@ -34,7 +34,8 @@ class TMATechnology(Technology):
 
 
     def initialization(self):
-        self.pipeline.initialization(self.image_names.values(), self.sample_name, self.marker_name_list, self.output_resolution, self.raw_images_path, self.output_path, self.cyto_distances)
+        image_names = [self.image_names[marker] for marker in self.marker_name_list]
+        self.pipeline.initialization(image_names, self.sample_name, self.marker_name_list, self.output_resolution, self.raw_images_path, self.output_path, self.cyto_distances)
 
 
     def masking(self, **kwargs):

@@ -29,22 +29,19 @@ class CyIF:
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, parent_class = None):
+    def __init__(self, config_file = None):
         self.technology = 'cyif'
-        self.parent_class = parent_class
+        self.config_file = config_file
 
-
-    def __getattr__(self, name):
-        return self.parent_class.__getattribute__(name)
- 
 
     def initialization(self, images_names, sample_name: str, n_images: str, output_resolution: int, raw_images_path: str, output_path: str):
 
         images_list = []
         cycles_metadata = {}
-        for n, cycle in enumerate(images_names):
+        for i in range(len(images_names)):
             # 1. Format all names to eliminate special characters
-            cycles_metadata[n] = {'marker_name_list': Utils.remove_special_characters(cycle['marker_name_list']),
+            cycle = images_names[i]
+            cycles_metadata[i] = {'marker_name_list': Utils.remove_special_characters(cycle['marker_name_list']),
                                  'dna_marker': Utils.remove_special_characters(cycle['dna_marker']), 
                                  'cyto_distances': cycle['cyto_distances']
             }
@@ -56,7 +53,7 @@ class CyIF:
         # 2. Stage the config file
         config_file = Utils.stage_config_file(sample_name, raw_images_path, output_path, 
                                 output_resolution = output_resolution, 
-                                marker_name_list = [f'cycle_{n}' for n in range(int(n_images))], 
+                                marker_name_list = [f'cycle_{i}' for i in range(int(n_images))], 
                                 technology = self.technology)
         
         pixel_sizes_per_image = Utils.get_pixelsize(images_list, raw_images_path, config_file)
