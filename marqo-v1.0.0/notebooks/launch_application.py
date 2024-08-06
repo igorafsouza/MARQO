@@ -1,8 +1,5 @@
-import warnings
-warnings.filterwarnings('ignore')
-
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import sys
 import json
 import numpy as np
@@ -32,6 +29,21 @@ sys.path.append("..")
 from analysis_per_tile import Pipeline
 from clustering.kmeans import KMEANS
 
+
+@contextlib.contextmanager
+def suppress_stdout_stderr():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        try:
+            sys.stdout = devnull
+            sys.stderr = devnull
+            yield
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+
 @contextlib.contextmanager
 def tqdm_joblib(tqdm_object):
     """Context manager to patch joblib to report into tqdm progress bar given as argument"""
@@ -47,7 +59,6 @@ def tqdm_joblib(tqdm_object):
     finally:
         joblib.parallel.BatchCompletionCallBack = old_batch_callback
         tqdm_object.close()
-
 
 
 class Notebook:
@@ -625,7 +636,7 @@ class Notebook:
 
             results = []
 
-            num_cores = 1
+            num_cores = 2
 
             try:
                 #with joblib.Parallel(n_jobs=num_cores) as parallel:
@@ -634,7 +645,8 @@ class Notebook:
                     for i in range(n_tiles)
                 ]
                 with tqdm_joblib(tqdm(desc="Processing", total=n_tiles)) as progress_bar:
-                    joblib.Parallel(n_jobs=num_cores)(joblib.delayed(pipeline.instance.analysis)(params) for params in parameters_list)
+                    with suppress_stdout_stderr():
+                        joblib.Parallel(n_jobs=num_cores)(joblib.delayed(pipeline.instance.analysis)(params) for params in parameters_list)
                     
                 print('All tiles processed.')
 
