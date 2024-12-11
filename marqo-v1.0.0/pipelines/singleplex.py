@@ -1,5 +1,5 @@
-
 # whole namespaces
+import os
 import numpy as np
 
 # specific functions form namespaces
@@ -19,6 +19,7 @@ from tiling.extract_tiles import TileExtraction
 from deconvolution.color import ColorMatrix
 from denoising.cell_pruning import Denoising
 from utils.spatial import Spatial
+from contextlib import redirect_stdout, redirect_stderr
 
 class SinglePlex:
     '''
@@ -143,17 +144,19 @@ class SinglePlex:
         registered_rois, linear_shifts, visualization_figs = extraction.roi_extraction(mother_coordinates, roi_index)
 
         # 2. Segmentation of ROIs
-        if segmentation_model == 'stardist':
-            model = StardistSegmentation()
-            model.set_parameters(self.config_file)
-            model.write_thresholds()
-            model.load_model()
+        with open(os.devnull, 'w') as fnull:
+            with redirect_stdout(fnull), redirect_stderr(fnull):
 
-        elif segmentation_model == 'cellpose':
-            model = CellposeSegmentation()
-            model.set_parameters(self.config_file)
-            model.load_model()
+                if segmentation_model == 'stardist':
+                    model = StardistSegmentation()
+                    model.set_parameters(self.config_file)
+                    model.write_thresholds()
+                    model.load_model()
 
+                elif segmentation_model == 'cellpose':
+                    model = CellposeSegmentation()
+                    model.set_parameters(self.config_file)
+                    model.load_model()
 
         single = SimpleSegmentation()
         single.set_parameters(self.config_file)

@@ -1,5 +1,5 @@
-
 # whole namespaces
+import os
 import yaml
 import numpy as np
 import pandas as pd
@@ -21,8 +21,7 @@ from tiling.map import TileMap
 from tiling.extract_tiles import TileExtraction
 from segmentation.single import SimpleSegmentation
 from utils.spatial import Spatial
-
-
+from contextlib import redirect_stdout, redirect_stderr
 
 class CyCIF:
     """
@@ -126,16 +125,19 @@ class CyCIF:
         registered_rois, linear_shifts, visualization_figs, registered_dapis = registration.get_registered_dapis(mother_coordinates, registered_masks, roi_index)
         
         # 2. Segmentation only for DAPI channel
-        if segmentation_model == 'stardist':
-            model = StardistSegmentation()
-            model.set_parameters(self.config_file)
-            model.write_thresholds()
-            model.load_model()
+        with open(os.devnull, 'w') as fnull:
+            with redirect_stdout(fnull), redirect_stderr(fnull):
 
-        elif segmentation_model == 'cellpose':
-            model = CellposeSegmentation()
-            model.set_parameters(self.config_file)
-            model.load_model()
+                if segmentation_model == 'stardist':
+                    model = StardistSegmentation()
+                    model.set_parameters(self.config_file)
+                    model.write_thresholds()
+                    model.load_model()
+
+                elif segmentation_model == 'cellpose':
+                    model = CellposeSegmentation()
+                    model.set_parameters(self.config_file)
+                    model.load_model()
 
         composite = CompositeSegmentation()
         composite.set_parameters(self.config_file)
