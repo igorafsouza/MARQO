@@ -1,5 +1,8 @@
+import warnings
+warnings.filterwarnings('ignore')
+
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 import sys
 import json
 import numpy as np
@@ -8,7 +11,7 @@ import threading
 import multiprocessing as mp
 import concurrent.futures
 from IPython.display import display, clear_output, Markdown
-from ipywidgets import Button, HBox, VBox, interact, interactive, fixed, interact_manual, Image, Layout, interactive_output, Output, Button, IntSlider, Box, Text, IntProgress
+from ipywidgets import Button, HBox, VBox, interact, interactive, fixed, interact_manual, Image, Layout, interactive_output, Output, Button, IntSlider, Box, Text, IntProgress, FloatText, ToggleButtons, BoundedFloatText
 from ipycanvas import MultiCanvas, hold_canvas, Canvas
 from time import time, sleep
 import queue
@@ -23,26 +26,11 @@ from technologies.micsss_technology import MICSSSTechnology
 from technologies.tma_technology import TMATechnology
 from technologies.singleplex_technology import SinglePlexTechnology
 from technologies.fluorescence_technology import IFTechnology
-from technologies.cyclic_if_technology import CyIFTechnology
+from technologies.cyclic_if_technology import CyCIFTechnology
 
 sys.path.append("..")
 from analysis_per_tile import Pipeline
 from clustering.kmeans import KMEANS
-
-
-@contextlib.contextmanager
-def suppress_stdout_stderr():
-    with open(os.devnull, 'w') as devnull:
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        try:
-            sys.stdout = devnull
-            sys.stderr = devnull
-            yield
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-
 
 @contextlib.contextmanager
 def tqdm_joblib(tqdm_object):
@@ -61,6 +49,7 @@ def tqdm_joblib(tqdm_object):
         tqdm_object.close()
 
 
+
 class Notebook:
     def __init__(self):
         self.analysis_output = Output()
@@ -69,10 +58,10 @@ class Notebook:
     def grab_instance(self, technology):
         # equivalent to a match/case statemet
         self.technology = {'MICSSS (single sample)': MICSSSTechnology(),
-                           'MICSSS (multiple sample)': TMATechnology(),
-                           'Singleplex IHC': SinglePlexTechnology(),
+                           'MICSSS (multiple sample)': SinglePlexTechnology(),
+                           'Singleplex IHC': TMATechnology(),
                            'mIF': IFTechnology(),
-                           'CyIF': CyIFTechnology()}[technology]
+                           'CyCIF': CyCIFTechnology()}[technology]
 
         
     def sanity_check(self, **kwargs):
@@ -130,27 +119,26 @@ class Notebook:
         return kwargs
     
     
-    def save_name(self, **widgs):
-        image_name = widgs['image_name']
-        marker = widgs['marker']
+    def save_name(self, image_name):
         full_image_path = os.path.join(self.technology.raw_images_path, image_name)
         if not os.path.exists(full_image_path):
             print('Please, make sure the image file is named correctly.')
-
+        
         else:
             RED = '\033[91m'
             print('Image saved as: ' + RED + image_name)
-            self.technology.image_names[marker] = image_name
+            self.technology.image_names.append(image_name)
+        
 
     def set_image_names(self):        
         # Make sure we reset image_names, in case the user make modifications on initialization
         # and restart the QC steps
-        self.technology.image_names = {}
+        self.technology.image_names = []
         for idx, marker in enumerate(self.technology.markers):
             widg = save_image_name(description=f'Provide file name for {marker} :')
             widg.description = f'Provide file name for {marker} :'
             my_interact_manual = interact_manual.options(manual_name="Save name")
-            my_interact_manual(self.save_name, **{'image_name': widg, 'marker': fixed(marker)})
+            my_interact_manual(self.save_name, image_name = widg)
 
 
     def save_cyif_images(self, **widgs):
@@ -162,23 +150,21 @@ class Notebook:
         else:
             RED = '\033[91m'
             print('Image saved as: ' + RED + widgs['image_name'])
-            self.technology.image_names[widgs['cycle']] = {'image_name': widgs['image_name'],
-                                    'marker_name_list': widgs['marker_name_list'],
-                                    'dna_marker': widgs['dna_marker'].split(','),
-                                    'cyto_distances': widgs['cyto_distances']
-                                    }
-
+            self.technology.image_names.append({'image_name': widgs['image_name'],
+                                                'marker_name_list': widgs['marker_name_list'],
+                                                'dna_marker': widgs['dna_marker'].split(','),
+                                                'cyto_distances': widgs['cyto_distances']
+            })
             
     def set_cyif_images(self):        
         # Make sure we reset image_names, in case the user make modifications on initialization
         # and restart the QC steps
-        self.technology.image_names = {}
+        self.technology.image_names = []
         for n in range(int(self.technology.n_images)):
             widgs = {'image_name': save_image_name(description=f'Provide filame for cycle #{n + 1}: '),
                      'marker_name_list': marker_name_list(),
                      'dna_marker': dna_marker(),
-                     'cyto_distances': cyto_distances(),
-                     'cycle': fixed(n)
+                     'cyto_distances': cyto_distances()
             }
             my_interact_manual = interact_manual.options(manual_name="Save name")
             my_interact_manual(self.save_cyif_images, **widgs)
@@ -197,16 +183,123 @@ class Notebook:
         else:
             self.set_cyif_images()
     
-    def initialize(self, technology):            
+    def initialize(self, technology):
         if technology is not None:
             self.grab_instance(technology)
             widgs = self.technology.initialization_widgets()
-            VBox([w for w in widgs.values()])
+            widgs_to_display = [w for w in widgs.values()]
+
+            # Create Segmentation Model ToggleButtons
+            segmentation_model = ToggleButtons(
+                options=["Stardist", "Cellpose"],
+                description="Segmentation Model",
+                button_style='',  # 'success', 'info', 'warning', 'danger' or ''
+                tooltips=["Select Stardist", "Select Cellpose"],
+            )
+
+            # Default Stardist widgets
+            stardist_nms = BoundedFloatText(value=0.5,
+                                            description="NMS:",
+                                            min=0,
+                                            max=1.0,
+                                            step=0.01,
+                                            style={'description_width': 'initial'}
+                                        )
+            stardist_prob = BoundedFloatText(value=0.25,
+                                            description="Probability:",
+                                            min=0,
+                                            max=1.0,
+                                            step=0.01,
+                                            style={'description_width': 'initial'}
+                                        )
+            stardist_pixel_size = BoundedFloatText(value=0.3 if technology not in ['mIF', 'CyCIF'] else 0.16,
+                                            description="Pixel Size (um):",
+                                            min=0,
+                                            max=1.0,
+                                            step=0.01,
+                                            style={'description_width': 'initial'}
+                                        )
+
+            # Default Cellpose widgets
+            cellpose_diameter = BoundedFloatText(value=0.0,
+                                            description="Cell Diameter (pixels):",
+                                            min=0,
+                                            max=100.0,
+                                            step=0.1,
+                                            style={'description_width': 'initial'}
+                                        )
+            cellpose_flow = BoundedFloatText(value=0.4,
+                                            description="Flow:",
+                                            min=0,
+                                            max=1.0,
+                                            step=0.01,
+                                            style={'description_width': 'initial'}
+                                        )
+
+            # Dynamic container for model parameters
+            dynamic_box = VBox()
+
+            # Function to update dynamic_box content and ensure only relevant widgs are passed
+            def update_widgets(model_name):
+                if model_name == "Stardist":
+                    # Update dynamic box with Stardist widgets
+                    dynamic_box.children = [VBox([stardist_nms, stardist_prob, stardist_pixel_size])]
+                elif model_name == "Cellpose":
+                    # Update dynamic box with Cellpose widgets
+                    dynamic_box.children = [VBox([cellpose_diameter, cellpose_flow])]
+
+            # Observe changes in the ToggleButtons
+            def on_model_change(change):
+                update_widgets(change["new"])
+
+            segmentation_model.observe(on_model_change, names="value")
+
+            # Set initial state
+            update_widgets("Stardist")  # Initialize with Stardist widgets
+
+            # Function to collect and pass values to self.set_attributes
+            def submit_values():
+                # Prepare a dictionary with all current widget values
+                current_values = {k: v.value if hasattr(v, 'value') else v for k, v in widgs.items()}
+                current_values['segmentation'] = {'model': ''}
+
+                # Only include relevant segmentation model parameters
+                if segmentation_model.value == "Stardist":
+                    current_values['segmentation_model'] = {'model': 'stardist'}
+                    current_values['segmentation_model'].update({
+                        "stardist_nms": stardist_nms.value,
+                        "stardist_prob": stardist_prob.value,
+                        "stardist_pixel_size": stardist_pixel_size.value,
+                    })
+                    # Remove Cellpose parameters
+                    current_values.pop("cellpose_diameter", None)
+                    current_values.pop("cellpose_flow", None)
+
+                elif segmentation_model.value == "Cellpose":
+                    current_values['segmentation_model'] = {'model': 'cellpose'}
+                    current_values['segmentation_model'].update({
+                        "cellpose_diameter": cellpose_diameter.value,
+                        "cellpose_flow": cellpose_flow.value,
+                    })
+                    # Remove Stardist parameters
+                    current_values.pop("stardist_nms", None)
+                    current_values.pop("stardist_prob", None)
+                    current_values.pop("stardist_pixel_size", None)
+
+                # Pass the values to self.set_attributes
+                self.set_attributes(**current_values)
+
+            # Display the main layout
+            widgs_to_display.append(segmentation_model)
+            widgs_to_display.append(dynamic_box)
+            display(VBox(widgs_to_display))
+
+            #display(submit_button)
 
             my_interact_manual = interact_manual.options(manual_name="Initialize")
-            my_interact_manual(self.set_attributes, **widgs)
-                
+            my_interact_manual(submit_values)
 
+                
     def manual_masking(self, image_index):
         tissue_img = self.technology.tissue_masks[image_index][5]
 
@@ -381,7 +474,7 @@ class Notebook:
 
     
     def masking_and_prelimreg(self):
-        if self.technology.image_names == {}:
+        if self.technology.image_names == []:
             print('Please, provide first the images to proceed.')
             return
         
@@ -633,6 +726,7 @@ class Notebook:
             n_tiles = len(tiles_tissue_percentage)
 
             tiles_coordinates = pipeline.allsamples_tilestats['coordinates']
+            segmentation_model = pipeline.segmentation_model
 
             results = []
 
@@ -641,12 +735,11 @@ class Notebook:
             try:
                 #with joblib.Parallel(n_jobs=num_cores) as parallel:
                 parameters_list = [
-                    [i, pipeline.registered_masks, tiles_coordinates[i], tiles_tissue_percentage[i]]
+                    [i, pipeline.registered_masks, tiles_coordinates[i], tiles_tissue_percentage[i], segmentation_model]
                     for i in range(n_tiles)
                 ]
                 with tqdm_joblib(tqdm(desc="Processing", total=n_tiles)) as progress_bar:
-                    with suppress_stdout_stderr():
-                        joblib.Parallel(n_jobs=num_cores)(joblib.delayed(pipeline.instance.analysis)(params) for params in parameters_list)
+                    joblib.Parallel(n_jobs=num_cores)(joblib.delayed(pipeline.instance.analysis)(params) for params in parameters_list)
                     
                 print('All tiles processed.')
 

@@ -57,7 +57,7 @@ class ElasticRegistration:
             self.rgb_dir = config_data['directories']['rgb']
             self.technology = config_data['sample']['technology']
 
-            if self.technology == 'cyif':
+            if self.technology == 'cycif':
                 self.cycles_metadata = config_data['cycles_metadata']
 
         except:
@@ -83,7 +83,7 @@ class ElasticRegistration:
         y_min = int(mother_coordinates[0] - self.registration_buffer)
         x_min = int(mother_coordinates[1] - self.registration_buffer)
 
-        self.fixed_roi = ImageHandler.acquire_image(image_path, y_min, x_min, Height, Width, self.output_resolution, channel_index=channel_index)
+        self.fixed_roi = ImageHandler.acquire_image(image_path, y_min, x_min, Height, Width, self.output_resolution, channel_index=channel_index, technology=self.technology)
 
 
     def get_moving_tile(self, image_path, mother_coordinates, registered_masks, image_index, channel_index=0):
@@ -93,7 +93,7 @@ class ElasticRegistration:
         y_min = mother_coordinates[0] - registered_masks[0][2] + registered_masks[image_index][2] - self.registration_buffer
         x_min = mother_coordinates[1] - registered_masks[0][0] + registered_masks[image_index][0] - self.registration_buffer
 
-        self.moving_roi = ImageHandler.acquire_image(image_path, y_min, x_min, Height, Width, self.output_resolution, channel_index=channel_index)
+        self.moving_roi = ImageHandler.acquire_image(image_path, y_min, x_min, Height, Width, self.output_resolution, channel_index=channel_index, technology=self.technology)
 
 
     def get_transformed_images(self, mother_coordinates, registered_masks, roi_index: int):
@@ -113,7 +113,6 @@ class ElasticRegistration:
 
         for image_index, image_path in enumerate(self.raw_images_path):
             marker_name = self.marker_name_list[image_index]
-            print(f'Registration: ROI {roi_index} | marker {marker_name}')
 
             if image_index == 0: # first image is the anchor image (reference)
                 # get and save first tile

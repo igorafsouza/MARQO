@@ -7,7 +7,8 @@ import numexpr
 import large_image
 import numpy as np
 import tifffile as tiff
-
+import tempfile
+import xml.etree.ElementTree as ET
 
 # classes from namespaces
 from PIL import Image
@@ -377,7 +378,84 @@ class ImageHandler:
 
 
     @staticmethod
-    def acquire_image(image_path, y_min, x_min, Height, Width, mag, channel_index=0):
+    def parse_resolution_and_tile_size_from_ome_xml(ome_xml):
+        """
+        Parse OME-XML metadata to get resolution in DPI, resolution unit, and tile size.
+
+        Parameters:
+            ome_xml (str): The OME-XML metadata as a string.
+
+        Returns:
+            tuple: (resolution_x_dpi, resolution_y_dpi, resolution_unit, tile_width, tile_height)
+        """
+        # Parse the XML to get physical sizes and units
+        root = ET.fromstring(ome_xml)
+        namespace = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
+        pixels = root.find(f".//{namespace}Pixels")
+
+        # Extract physical pixel sizes and units
+        physical_size_x = float(pixels.get("PhysicalSizeX", 1.0))
+        physical_size_y = float(pixels.get("PhysicalSizeY", 1.0))
+        unit_x = pixels.get("PhysicalSizeXUnit", "µm")
+        unit_y = pixels.get("PhysicalSizeYUnit", "µm")
+
+        # Extract or set default tile size
+        tile_width = int(pixels.get("TileWidth", 1024))  # default tile width
+        tile_height = int(pixels.get("TileHeight", 1024))  # default tile height
+
+        # Convert to DPI if unit is µm or mm
+        if unit_x == "µm" and unit_y == "µm":
+            # 1 inch = 25400 µm
+            resolution_x_dpi = int(25400 / physical_size_x)
+            resolution_y_dpi = int(25400 / physical_size_y)
+            resolution_unit = "INCH"
+
+        elif unit_x == "mm" and unit_y == "mm":
+            # 1 inch = 25.4 mm
+            resolution_x_dpi = int(25.4 / physical_size_x)
+            resolution_y_dpi = int(25.4 / physical_size_y)
+            resolution_unit = "INCH"
+
+        else:
+            # If units are not in µm or mm, default to None
+            resolution_x_dpi = None
+            resolution_y_dpi = None
+            resolution_unit = "UNKNOWN"
+
+        return resolution_x_dpi, resolution_y_dpi, resolution_unit, tile_width, tile_height
+
+
+    @staticmethod
+    def get_ts_tif_pages(image_path, channel_index):
+        with tiff.TiffFile(image_path) as tif:
+            # Check if the specified channel index is within bounds
+            if channel_index >= len(tif.series[0].pages):
+                raise ValueError(f"Channel index {channel_index} is out of bounds.")
+
+            # Read the specified channel (page) as a numpy array
+            channel_array = tif.series[0].pages[channel_index].asarray()
+            ome_xml = tif.ome_metadata
+
+        resolution_x_dpi, resolution_y_dpi, resolution_unit, tile_width, tile_height = ImageHandler.parse_resolution_and_tile_size_from_ome_xml(ome_xml)
+
+        with tempfile.NamedTemporaryFile(suffix='.tiff', delete=True) as temp_file:
+            # Save numpy array to the temporary TIFF file
+            #tiff.imwrite(temp_file.name, channel_array)
+            with tiff.TiffWriter(temp_file.name, ome=True) as tiff_writer:
+                tiff_writer.write(
+                    channel_array,
+                    tile=(tile_width, tile_height),
+                    resolution=(resolution_x_dpi, resolution_y_dpi),  # Set resolution to match physical size
+                    resolutionunit=resolution_unit
+                )
+
+            # Load the temporary TIFF file using large_image
+            ts = large_image.getTileSource(temp_file.name)
+
+        return ts
+
+    @staticmethod
+    def acquire_image(image_path, y_min, x_min, Height, Width, mag, channel_index=0, technology='micsss'):
 
         #ensure input types are correct and rounded   
         Height = int(np.round(Height))
@@ -391,6 +469,11 @@ class ImageHandler:
         #grab info
         a = large_image.getTileSource(image_path)
         data = a.getMetadata()
+        if technology in ['if', 'cycif'] and not 'frames' in data:
+            #print('[X] No frames')
+            # Get a new tilesource specific for the channel using tiff pages
+            a = ImageHandler.get_ts_tif_pages(image_path, channel_index)
+
         OG_width = int(np.round(data['sizeX']))
         OG_height = int(np.round(data['sizeY']))
         native_res = int(np.round(data['magnification'])) #accounts for images taken at different base resolutions
@@ -425,11 +508,17 @@ class ImageHandler:
             Width = int(np.round(Width - x_start_index))
 
         # #grab existing image array
-        b = a.getRegion(frame = channel_index, region = dict(left = int(np.round(x_min)), top = int(np.round(y_min)), width = int(np.round(Width)), height = int(np.round(Height)), 
+        if technology in ['if', 'cycif'] and not 'frames' in data:
+            b = a.getRegion(region = dict(left = int(np.round(x_min)), top = int(np.round(y_min)), width = int(np.round(Width)), height = int(np.round(Height)), 
                                       units='mag_pixels'), scale = dict(magnification=mag), format=large_image.tilesource.TILE_FORMAT_NUMPY)
+
+        else:
+            b = a.getRegion(frame = channel_index, region = dict(left = int(np.round(x_min)), top = int(np.round(y_min)), width = int(np.round(Width)), height = int(np.round(Height)), 
+                                      units='mag_pixels'), scale = dict(magnification=mag), format=large_image.tilesource.TILE_FORMAT_NUMPY)
+
         c = np.asarray(b[0])
 
-        if c.shape[2] == 1:
+        if technology in ['if', 'cycif']:
             # IF
             bit_depth = c.dtype
             temp_image_array = np.zeros((Height, Width)).astype(bit_depth)
@@ -455,6 +544,7 @@ class ImageHandler:
         # ALERT: this is the line gettin erro because of negative dimensions
         if len(image_array.shape) == 3:
             temp_image_array[0: diff_height, 0: diff_width, :] = image_array
+
         else:
             temp_image_array[0: diff_height, 0: diff_width] = image_array
 

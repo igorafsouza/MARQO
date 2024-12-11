@@ -6,6 +6,7 @@ import operator
 
 
 # classes from namespaces
+from skimage.measure import regionprops, label
 from sklearn.neighbors import KNeighborsClassifier
 
 # functions from namaspeaces
@@ -30,31 +31,54 @@ class CompositeSegmentation:
         with open(config_file) as stream:
             config_data = yaml.safe_load(stream)
 
-
-        try:
             self.noise_threshold = config_data['parameters']['segmentation']['noise_threshold']
             self.perc_consensus = config_data['parameters']['segmentation']['perc_consensus']
 
             self.segmentation_buffer = config_data['parameters']['segmentation']['segmentation_buffer']
             self.cyto_distances = config_data['parameters']['segmentation']['cyto_distances']
 
+            self.image_scale_factor = config_data['parameters']['image']['scale_factor']
+
             self.markers_list = config_data['sample']['markers']
             self.technology = config_data['sample']['technology']
 
-            if self.technology == 'cyif':
+            if self.technology == 'cycif':
                 self.cycles_metadata = config_data['cycles_metadata']
                 
 
-        except:
-            self.noise_threshold = config_data['parameters']['noise_threshold']
-            self.perc_consensus = config_data['parameters']['percmarkers_to_keepcell']
 
-            self.segmentation_buffer = config_data['parameters']['segmentation_buffer']
-            self.cyto_distances = config_data['parameters']['cyto_distances']
+    def apply_model(self, roi, segmentation_model):
+        if segmentation_model.name == 'stardist':
+            scale = self.image_scale_factor / segmentation_model.pixel_size
+
+            img_transformed = segmentation_model.transform_image(roi)
+            labels, details = segmentation_model.model.predict_instances(img_transformed, scale=scale)
+            centroids = details['points'] #outputs (y,x) format
+            coordinates = details['coord']
+
+        elif segmentation_model.name == 'cellpose':
+            img_transformed = segmentation_model.transform_image(roi)
+
+            if segmentation_model.cell_diameter != 0.0:
+                masks, flows, styles, diams = segmentation_model.model.eval(img_transformed, diameter=segmentation_model.cell_diameter, flow_threshold=segmentation_model.flow, normalize=True, channels=[0, 0])
+
+            else:
+                masks, flows, styles, diams = segmentation_model.model.eval(img_transformed, diameter=None, flow_threshold=segmentation_model.flow, normalize=True, channels=[0, 0])
+                
+            # Find centroids and coordinates of nuclei
+            props = regionprops(masks)
+            centroids = [np.array(prop.centroid) for prop in props]  # Centroids in (y, x) format
+            coordinates = []
+            for prop in props:
+                # Get the (row, column) coordinates of the pixels in this region
+                coords = prop.coords
+                yn, xn = coords[:, 0], coords[:, 1]
+                coordinates.append([yn, xn])
+ 
+        return centroids, coordinates
 
 
-
-    def predict(self, registered_rois, roi_index, visualization_figs, stardist_model):
+    def predict(self, registered_rois, roi_index, visualization_figs, segmentation_model):
         initial_centroids_across_images = []
         initial_centroids_across_images_combinedcoor = []
         initial_coords_across_images = []
@@ -83,17 +107,14 @@ class CompositeSegmentation:
 
         for roi in registered_rois:
 
-            img_transformed = ImageHandler.transform_image(roi, add_hemo=False)
-            labels, details = stardist_model.predict_instances(img_transformed, scale=1.65)
-            centroids = details['points'] #outputs (y,x) format
-            coords = details['coord']
-            print(f'Segmented celss: {len(coords)}')
+            centroids, coords = self.apply_model(roi, segmentation_model)
+            print(f'Celss segmented: {len(coords)}')
 
             initial_centroids_across_images_combinedcoor.append(centroids) #appends (y,x) coordinates while combined
             centroids = np.array(list((zip(*centroids)))) #separate y and x coordinates
             initial_centroids_across_images.append(centroids) #appends (y,x) coordinates while separated
             initial_coords_across_images.append(coords) #appends coords, aka coordinate edges (y,x) of cell nuclei
-            initial_centroids_across_images_boolean.append(np.array([0]*len(details['points']))) #ID sparse array for valid cells
+            initial_centroids_across_images_boolean.append(np.array([0]*len(coords))) #ID sparse array for valid cells
 
         for tile_index, centroids_in_tile in enumerate(initial_centroids_across_images_combinedcoor):
             for possible_cell_index, possible_cell in enumerate(centroids_in_tile):
@@ -279,7 +300,7 @@ class CompositeSegmentation:
         return results
 
 
-    def predict_dapi(self, registered_rois, roi_index, visualization_figs, stardist_model):
+    def predict_dapi(self, registered_rois, roi_index, visualization_figs, segmentation_model):
         initial_centroids_across_images = []
         initial_centroids_across_images_combinedcoor = []
         initial_coords_across_images = []
@@ -316,18 +337,15 @@ class CompositeSegmentation:
 
         for roi in registered_rois:
 
-            scale = 2.5
-            img_transformed = ImageHandler.normalize_percentile(roi, 1, 99.8)
-            labels, details = stardist_model.predict_instances(img_transformed, scale=scale)
-            centroids = details['points'] #outputs (y,x) format
-            coords = details['coord']
+            centroids, coords = self.apply_model(roi, segmentation_model)
+
             print(f'Segmented celss: {len(coords)}')
 
             initial_centroids_across_images_combinedcoor.append(centroids) #appends (y,x) coordinates while combined
             centroids = np.array(list((zip(*centroids)))) #separate y and x coordinates
             initial_centroids_across_images.append(centroids) #appends (y,x) coordinates while separated
             initial_coords_across_images.append(coords) #appends coords, aka coordinate edges (y,x) of cell nuclei
-            initial_centroids_across_images_boolean.append(np.array([0]*len(details['points']))) #ID sparse array for valid cells
+            initial_centroids_across_images_boolean.append(np.array([0]*len(coords))) #ID sparse array for valid cells
 
         for tile_index, centroids_in_tile in enumerate(initial_centroids_across_images_combinedcoor):
             for possible_cell_index, possible_cell in enumerate(centroids_in_tile):
@@ -376,7 +394,7 @@ class CompositeSegmentation:
                         training_points_y = training_points_y + list(current_nuc_allcoords_y)
                         official_cell_count = official_cell_count+1
         
-        nuclei_mask.astype(bool) #fianl nuclei mask
+        nuclei_mask.astype(bool) #final nuclei mask
         training_points = np.column_stack((training_points_y, training_points_x))
 
         # if no cells were detected in the previous block, we dont execute the following one 

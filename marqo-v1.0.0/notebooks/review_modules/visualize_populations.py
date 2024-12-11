@@ -71,7 +71,7 @@ class VisualizePopulations:
             self.output_resolution = config_data['parameters']['output_resolution']
 
         if self.technology == 'tma':
-            self.cores = config_data['sample']['tma_cores']
+            self.cores = config_data['sample']['cores']
 
         elif self.technology == 'if':
             channel = config_data['sample']['dna_marker_channel']
@@ -127,8 +127,8 @@ class VisualizePopulations:
     def _read(self):
         finalcellinfo_df = pd.read_csv(self.finalcellinfo_file, sep=',', header=0, index_col=['Cell index'])
 
-        #if self.technology == 'tma':
-        #    finalcellinfo_df = finalcellinfo_df.loc[finalcellinfo_df['TMA Core'] == self.core]
+        if os.path.exists(self.pathology_summary):
+            self.cores = np.unique(finalcellinfo_df['Tissue annotation']) 
 
         # Load the ROI dataframes
         rois_data = {}
@@ -434,7 +434,11 @@ class VisualizePopulations:
 
 
             if self.technology == 'tma':
-                core_indices = set(self.finalcellinfo_df.loc[self.finalcellinfo_df['TMA Core'] == self.core].index)
+                if os.path.exists(self.pathology_summary):
+                    core_indices = set(self.finalcellinfo_df.loc[self.finalcellinfo_df['Tissue annotation'] == self.core].index)
+                else:
+                    core_indices = set(self.finalcellinfo_df.loc[self.finalcellinfo_df['Core Label'] == self.core].index)
+
                 final_indices_global = final_indices_global & core_indices
 
 
@@ -477,6 +481,9 @@ class VisualizePopulations:
                         continue
 
                     tissue_indices = self.annotations_indices[tissue]
+                    if not tissue_indices:
+                        continue
+                    
                     pos_tissue = tissue_indices & final_indices_global
                     neg_tissue = tissue_indices - final_indices_global
                     

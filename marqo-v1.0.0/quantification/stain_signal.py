@@ -45,7 +45,7 @@ class Signal:
             self.sample_name = config_data['sample']['name']
             self.technology = config_data['sample']['technology']
 
-            if self.technology == 'cyif':
+            if self.technology == 'cycif':
                 self.cycles_metadata = config_data['cycles_metadata']
 
 

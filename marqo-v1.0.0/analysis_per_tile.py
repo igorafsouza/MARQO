@@ -8,12 +8,11 @@ from pipelines.micsss import MICSSS
 from pipelines.singleplex import SinglePlex
 from pipelines.fluorescence import IF
 from pipelines.tma import TMA
-from pipelines.cyclic_immunofluorescence import CyIF
+from pipelines.cyclic_immunofluorescence import CyCIF
 
 from utils.image import ImageHandler
 from utils.file import FileHandler
 from utils.utils import Utils
-from segmentation.stardist_algorithm import StardistSegmentation
 
 import multiprocessing as mp
 import tifffile
@@ -54,11 +53,13 @@ class Pipeline():
             self.marker_name_list = self.config_data['sample']['markers']
             self.sample_name = self.config_data['sample']['name']
             self.sample_directory = self.config_data['directories']['marco_output']
+            self.segmentation_model = self.config_data['parameters']['segmentation']['model']
 
         except:
             self.marker_name_list = self.config_data['sample']['markers']
             self.sample_name = self.config_data['sample']['sample_name']
             self.sample_directory = self.config_data['directories']['sample_directory']
+            self.segmentation_model = self.config_data['parameters']['segmentation']['model']
 
         self.registered_masks = ImageHandler.get_registered_masks(self.marker_name_list, self.sample_name, self.sample_directory, self.technology)
 
@@ -146,7 +147,7 @@ class Pipeline():
             'singleplex': SinglePlex(self.config_file),
             'if': IF(self.config_file),
             'tma': TMA(self.config_file),
-            'cyif': CyIF(self.config_file)
+            'cycif': CyCIF(self.config_file)
         }
 
         return instances_dict[technology]

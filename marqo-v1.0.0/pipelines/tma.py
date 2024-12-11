@@ -12,7 +12,8 @@ from masking.binary_mask import Masking
 from registration.rigid import RigidRegistration
 from registration.elastic import ElasticRegistration
 from segmentation.composite import CompositeSegmentation
-from segmentation.stardist_algorithm import StardistSegmentation
+from segmentation.stardist_model import StardistSegmentation
+from segmentation.cellpose_model import CellposeSegmentation
 from quantification.stain_signal import Signal
 from tiling.map import TileMap
 from deconvolution.color import ColorMatrix
@@ -26,23 +27,29 @@ class TMA:
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, config_file = None):
+    def __init__(self, parent_class = None):
         self.technology = 'tma'
-        self.config_file = config_file
+        self.parent_class = parent_class
+
+
+    def __getattr__(self, name):
+        return self.parent_class.__getattribute__(name)
 
 
     def initialization(self, images_names: List[str], sample_name: str, marker_name_list: str, output_resolution: int, 
-                       raw_images_path: str, output_path: str, cyto_distances: List[int]):
+                       raw_images_path: str, output_path: str, cyto_distances: List[int], segmentation_model: dict):
         
         # 1. Format all names to eliminate special characters
         marker_name_list = Utils.remove_special_characters(marker_name_list)
 
         # 2. Stage the config file
         config_file = Utils.stage_config_file(sample_name, raw_images_path, output_path, 
-                                output_resolution = output_resolution, 
-                                cyto_distances = cyto_distances, 
-                                technology = self.technology,
-                                marker_name_list = marker_name_list)
+                                output_resolution=output_resolution, 
+                                cyto_distances=cyto_distances, 
+                                technology=self.technology,
+                                marker_name_list=marker_name_list,
+                                segmentation_model=segmentation_model
+                                )
         
         # Setting config file as class attribute
         self.config_file = config_file
@@ -98,6 +105,15 @@ class TMA:
         return tile_map.get_tiling_map(registered_masks, tissue_masks)
 
 
+    def deconvolution(self, registered_masks: List):
+        """
+        
+        """
+        color_matrix = ColorMatrix()
+        color_matrix.set_parameters(self.config_file)
+        color_matrix.global_evaluation(registered_masks)
+
+
     def analysis(self, paramaters_array):
         '''
         This function is called by a different entry-point (from the command-line). It will perform all steps 
@@ -111,20 +127,30 @@ class TMA:
         roi_index = paramaters_array[0]
         registered_masks = paramaters_array[1]
         mother_coordinates = paramaters_array[2]
+        segmentation_model = paramaters_array[4]
 
+        color_deconv_matrices = Utils.get_decon_matrix(self.config_file)
+        
         registration = ElasticRegistration()
         registration.set_parameters(self.config_file)
-        registered_rois, linear_shifts, visualization_figs = registration.get_transformed_images(mother_coordinates, registered_masks, roi_index)
+        registered_rois, linear_shifts, visualization_figs = registration.get_transformed_images(mother_coordinates, registered_masks, color_deconv_matrices, roi_index)
 
         # 2. Segmentation of the registred rois
-        stardist = StardistSegmentation()
-        stardist.set_parameters(self.config_file)
-        stardist_model = stardist.load_model()
+        if segmentation_model == 'stardist':
+            model = StardistSegmentation()
+            model.set_parameters(self.config_file)
+            model.write_thresholds()
+            model.load_model()
+
+        elif segmentation_model == 'cellpose':
+            model = CellposeSegmentation()
+            model.set_parameters(self.config_file)
+            model.load_model()
 
         composite = CompositeSegmentation()
         composite.set_parameters(self.config_file)
         
-        results = composite.predict(registered_rois, roi_index, visualization_figs, stardist_model)
+        results = composite.predict(registered_rois, roi_index, visualization_figs, model)
 
         # 3. Quantification over registred_rois and coordinates from segmentation
         tile_tissue_percentage = paramaters_array[3]
@@ -132,7 +158,7 @@ class TMA:
         signal = Signal()
         signal.set_parameters(self.config_file)
         results = signal.quantify(roi_index, registered_rois, linear_shifts, 
-                                  mother_coordinates, registered_masks,
+                                  mother_coordinates, registered_masks, color_deconv_matrices,
                                   tile_tissue_percentage, visualization_figs, 
                                   **results)
 

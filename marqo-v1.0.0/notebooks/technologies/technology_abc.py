@@ -6,7 +6,7 @@ class Technology(ABC):
         self.name = name
         self.tissue_masks = []
         self.registered_masks = []
-        self.image_names = {}
+        self.image_names = []
 
     @abstractmethod
     def get_widgets(self, widgets_func):

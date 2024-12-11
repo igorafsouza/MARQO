@@ -57,6 +57,7 @@ class Classify:
             self.sample_name = config_data['sample']['sample_name']
             self.markers = config_data['sample']['markers']
             self.technology = 'micsss'
+            self.cores_labels = False
             self.clusters_perc_medians = config_data['k-clusters']
             self.rgb_dir = config_data['directories']['product_directories']['rgb']
             self.geojson_dir = config_data['directories']['product_directories']['geojson'].replace('geojsons_perROI', 'geoJSONS_perROI')
@@ -73,7 +74,7 @@ class Classify:
             self.dna_marker = self.markers[channel]
             del self.markers[channel]
 
-        elif self.technology == 'cyif':
+        elif self.technology == 'cycif':
             self.cycles_metadata = config_data['cycles_metadata']
             marker_list_across_channels = [v['marker_name_list'] for k, v in self.cycles_metadata.items()]
             marker_list_across_channels = functools.reduce(operator.iconcat, marker_list_across_channels, [])  # flatten the list of lists
@@ -461,7 +462,7 @@ class Classify:
 
             roi_path = os.path.join(self.rgb_dir, f'{self.sample_name}_ROI#{roi}_{marker}.ome.tif')        
 
-            if self.technology != 'if' and self.technology != 'cyif':
+            if self.technology != 'if' and self.technology != 'cycif':
                 # path to roi image (rgb)
                 roi_img = plt.imread(roi_path)
 
@@ -502,7 +503,7 @@ class Classify:
                 elif channel == 'chromogen':
                     roi_img = chromogen_colored
 
-            elif self.technology == 'cyif':
+            elif self.technology == 'cycif':
                 cycle = '_'.join(marker.split('_')[:2])
                 dna_marker = self.dna_marker_per_cycle[cycle]
                 geojson_path = os.path.join(self.geojson_dir, f'{self.sample_name}_ROI#{roi}_{marker}.json') 
@@ -639,6 +640,9 @@ class Classify:
 
 
     def _create_figure(self, roi_img, x, y, scale_factor=1.0):
+        rois = [int(r) for r in self.tilestats_map.keys()]
+        idx_selected = rois.index(self.roi_selected)
+        
         # Constants
         img_width = roi_img.shape[1]
         img_height = roi_img.shape[0]
@@ -655,11 +659,11 @@ class Classify:
         )
 
         c = ['#36454f'] * len(x)
-        c[self.roi_selected] = '#1FFF5E'
+        c[idx_selected] = '#1FFF5E'
         fig.data[0].marker.color = c
 
         o = [0] * len(x)
-        o[self.roi_selected] = 1
+        o[idx_selected] = 1
         fig.data[0].marker.opacity = o
 
         # Configure axes

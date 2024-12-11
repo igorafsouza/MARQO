@@ -88,7 +88,7 @@ class RigidRegistration:
 
             first_stain_name = self.raw_images_path[0]
 
-            img_first = ImageHandler.acquire_image(first_stain_name, I1_y_min, I1_x_min, window_height, window_width, 1.25)
+            img_first = ImageHandler.acquire_image(first_stain_name, I1_y_min, I1_x_min, window_height, window_width, 1.25, technology=self.technology)
 
             #apply scale factor to store as metadata 
             I1_y_max = int(round(I1_y_max * self.scale_factor_to_output))
@@ -124,7 +124,7 @@ class RigidRegistration:
             OG_height = data['sizeY']
             b = b.getRegionAtAnotherScale(sourceRegion=dict(left = 0, top = 0, width = OG_width, height = OG_height, units = 'base_pixels'), 
                                           targetScale=dict(magnification = 1.25), format=large_image.tilesource.TILE_FORMAT_NUMPY)
-            if self.technology == 'cyif':
+            if self.technology == 'cycif':
                 a = np.asarray(a[0])
                 img_a = a[:, :, 0].astype(np.uint8)
 
@@ -169,11 +169,11 @@ class RigidRegistration:
             I2_x_max = I2_x_min + window_width
             I2_y_min = I2_y_min - y_shift
             I2_y_max = I2_y_min + window_height
-            img_first = ImageHandler.acquire_image(first_stain_name, I1_y_min, I1_x_min, window_height, window_width, 1.25)
-            img_current = ImageHandler.acquire_image(self.raw_images_path[image_index], I2_y_min, I2_x_min, window_height, window_width, 1.25)
+            img_first = ImageHandler.acquire_image(first_stain_name, I1_y_min, I1_x_min, window_height, window_width, 1.25, technology=self.technology)
+            img_current = ImageHandler.acquire_image(self.raw_images_path[image_index], I2_y_min, I2_x_min, window_height, window_width, 1.25, technology=self.technology)
             im = Image.fromarray(img_current)
 
-            if self.technology == 'cyif':
+            if self.technology == 'cycif':
                 img_first = np.invert(img_first)
                 img_first = np.dstack([img_first, img_first, img_first]).astype(np.uint8)
                 mask = img_first[:, :, 0] < 250

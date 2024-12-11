@@ -2,7 +2,7 @@ from ipywidgets import RadioButtons, IntSlider, SelectionSlider, SelectMultiple,
 # Widgets definition for intialization
 user_id = Text(
     value='',
-    placeholder='Name',
+    placeholder='Type something',
     style = {'description_width': 'initial'},
     description='Reviewer name:',
     disabled=False,
@@ -10,7 +10,7 @@ user_id = Text(
 
 
 sample_path = Text(
-    value='/mnt/data/sample_name',
+    value='/sc/arion/projects/path_to_sample_folder',
     placeholder='Type something',
     style = {'description_width': 'initial'},
     description='Path to sample folder:',
@@ -44,7 +44,7 @@ def select_core(cores):
     core = RadioButtons(
         options=cores,
         value=cores[0],
-        description='Choose marker to review:',
+        description='Choose Core to review:',
         style = {'description_width': 'initial'},
         layout={'width': 'max-content'}, # If the items' names are long
         disabled=False)
@@ -281,8 +281,8 @@ def root_cluster(clusters):
 
 def channel_radio_buttons(technology):
     radio_buttons = RadioButtons(
-        options=['RGB', 'Hematoxylin', 'AEC'] if technology not in ['if', 'cyif'] else ['DNA + chromogen', 'DNA', 'chromogen'],
-        value='RGB' if technology not in ['if', 'cyif'] else 'DNA + chromogen',
+        options=['RGB', 'Hematoxylin', 'AEC'] if technology not in ['if', 'cycif'] else ['DNA + chromogen', 'DNA', 'chromogen'],
+        value='RGB' if technology not in ['if', 'cycif'] else 'DNA + chromogen',
         description='Select the channel to display:',
         orientation='vertical')
 

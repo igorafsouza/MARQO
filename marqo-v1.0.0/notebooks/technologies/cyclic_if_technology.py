@@ -4,12 +4,12 @@ from .appwidgets import *
 from .technology_abc import Technology
 
 sys.path.append("..")
-from pipelines.cyclic_immunofluorescence import CyIF
+from pipelines.cyclic_immunofluorescence import CyCIF
 
 
-class CyIFTechnology(Technology):
+class CyCIFTechnology(Technology):
     def __init__(self):
-        super().__init__('cyif', CyIF())
+        super().__init__('cycif', CyCIF())
 
 
     def get_widgets(self, widgets_func):
@@ -35,7 +35,7 @@ class CyIFTechnology(Technology):
 
 
     def initialization(self):
-        self.pipeline.initialization(self.image_names, self.sample_name, self.n_images, self.output_resolution, self.raw_images_path, self.output_path)
+        self.pipeline.initialization(self.image_names, self.sample_name, self.n_images, self.output_resolution, self.raw_images_path, self.output_path, self.segmentation_model)
 
 
     def masking(self, **kwargs):

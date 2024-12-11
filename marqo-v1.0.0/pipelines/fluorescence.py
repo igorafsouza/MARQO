@@ -16,7 +16,8 @@ from masking.binary_mask import Masking
 from registration.rigid import RigidRegistration
 from registration.elastic import ElasticRegistration
 from segmentation.composite import CompositeSegmentation
-from segmentation.stardist_algorithm import StardistSegmentation
+from segmentation.stardist_model import StardistSegmentation
+from segmentation.cellpose_model import CellposeSegmentation
 from quantification.stain_signal import Signal
 from tiling.map import TileMap
 from tiling.extract_tiles import TileExtraction
@@ -30,13 +31,17 @@ class IF:
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, config_file = None):
+    def __init__(self, parent_class = None):
         self.technology = 'if'
-        self.config_file = config_file
+        self.parent_class = parent_class
 
+
+    def __getattr__(self, name):
+        return self.parent_class.__getattribute__(name)
+ 
 
     def initialization(self, images_names: List[str], sample_name: str, marker_name_list: str, dna_marker: str, ref_channels: List[str], output_resolution: int, 
-                       raw_images_path: str, output_path: str, cyto_distances: List[int]):
+                       raw_images_path: str, output_path: str, cyto_distances: List[int], segmentation_model: dict):
         
         # 1. Format all names to eliminate special characters
         marker_name_list = Utils.remove_special_characters(marker_name_list)
@@ -44,10 +49,12 @@ class IF:
 
         # 2. Stage the config file
         config_file = Utils.stage_config_file(sample_name, raw_images_path, output_path, 
-                                output_resolution = output_resolution, 
-                                cyto_distances = cyto_distances, 
-                                marker_name_list = marker_name_list,
-                                technology = self.technology)
+                                output_resolution=output_resolution, 
+                                cyto_distances=cyto_distances, 
+                                marker_name_list=marker_name_list,
+                                technology=self.technology,
+                                segmentation_model=segmentation_model
+                                )
         
         # 1. Grab dimensions from image
         dimensions = Utils.get_metadata_from_if(images_names, raw_images_path)
@@ -114,6 +121,7 @@ class IF:
         roi_index = paramaters_array[0]
         registered_masks = paramaters_array[1]
         mother_coordinates = paramaters_array[2]
+        segmentation_model = paramaters_array[4]
         
         # 1. Elastic registration is not performed, only the ROI from the DAPI channel is acquired
         extraction = TileExtraction()
@@ -123,14 +131,21 @@ class IF:
         registered_rois, linear_shifts, visualization_figs = extraction.extract_rois_all_channels(mother_coordinates, roi_index)
 
         # 2. Segmentation only for DAPI channel
-        stardist = StardistSegmentation(model='IF')
-        stardist.set_parameters(self.config_file)
-        stardist_model = stardist.load_model()
+        if segmentation_model == 'stardist':
+            model = StardistSegmentation()
+            model.set_parameters(self.config_file)
+            model.write_thresholds()
+            model.load_model()
+
+        elif segmentation_model == 'cellpose':
+            model = CellposeSegmentation()
+            model.set_parameters(self.config_file)
+            model.load_model()
 
         single = SimpleSegmentation()
         single.set_parameters(self.config_file)
         
-        results = single.predict(registered_rois, roi_index, visualization_figs, stardist_model)
+        results = single.predict(registered_rois, roi_index, visualization_figs, model)
 
         # 3. Quantification
         tile_tissue_percentage = paramaters_array[3]

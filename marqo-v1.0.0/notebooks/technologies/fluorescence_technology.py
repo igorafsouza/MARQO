@@ -35,8 +35,7 @@ class IFTechnology(Technology):
 
 
     def initialization(self):
-        image_names = [self.image_names[marker] for marker in self.marker_name_list]
-        self.pipeline.initialization(image_names, self.sample_name, self.marker_name_list, self.dna_marker, self.ref_channels, self.output_resolution, self.raw_images_path, self.output_path, self.cyto_distances)
+        self.pipeline.initialization(self.image_names, self.sample_name, self.marker_name_list, self.dna_marker, self.ref_channels, self.output_resolution, self.raw_images_path, self.output_path, self.cyto_distances, self.segmentation_model)
 
 
     def masking(self, **kwargs):

@@ -36,7 +36,7 @@ class FileHandler:
             if self.technology == 'if':
                 self.dna_marker = config_data['sample']['dna_marker_channel']
 
-            elif self.technology == 'cyif':
+            elif self.technology == 'cycif':
                 self.cycles_metadata = config_data['cycles_metadata']
                 marker_list_across_channels = [v['marker_name_list'] for k, v in self.cycles_metadata.items()]
                 marker_list_across_channels = functools.reduce(operator.iconcat, marker_list_across_channels, [])  # flatten the list of lists

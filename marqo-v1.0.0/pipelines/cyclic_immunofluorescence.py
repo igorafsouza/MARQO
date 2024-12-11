@@ -14,7 +14,8 @@ from masking.binary_mask import Masking
 from registration.rigid import RigidRegistration
 from registration.elastic import ElasticRegistration
 from segmentation.composite import CompositeSegmentation
-from segmentation.stardist_algorithm import StardistSegmentation
+from segmentation.stardist_model import StardistSegmentation
+from segmentation.cellpose_model import CellposeSegmentation
 from quantification.stain_signal import Signal
 from tiling.map import TileMap
 from tiling.extract_tiles import TileExtraction
@@ -23,25 +24,28 @@ from utils.spatial import Spatial
 
 
 
-class CyIF:
+class CyCIF:
     """
     Class to define the pipeline designed to process MICSSS images (original MARCO pipeline).
     In this class it's possible to find the main steps performed by it and the methods it imports and uses.
     """
 
-    def __init__(self, config_file = None):
-        self.technology = 'cyif'
-        self.config_file = config_file
+    def __init__(self, parent_class = None):
+        self.technology = 'cycif'
+        self.parent_class = parent_class
 
 
-    def initialization(self, images_names, sample_name: str, n_images: str, output_resolution: int, raw_images_path: str, output_path: str):
+    def __getattr__(self, name):
+        return self.parent_class.__getattribute__(name)
+ 
+
+    def initialization(self, images_names, sample_name: str, n_images: str, output_resolution: int, raw_images_path: str, output_path: str, segmentation_model: dict):
 
         images_list = []
         cycles_metadata = {}
-        for i in range(len(images_names)):
+        for n, cycle in enumerate(images_names):
             # 1. Format all names to eliminate special characters
-            cycle = images_names[i]
-            cycles_metadata[i] = {'marker_name_list': Utils.remove_special_characters(cycle['marker_name_list']),
+            cycles_metadata[n] = {'marker_name_list': Utils.remove_special_characters(cycle['marker_name_list']),
                                  'dna_marker': Utils.remove_special_characters(cycle['dna_marker']), 
                                  'cyto_distances': cycle['cyto_distances']
             }
@@ -53,8 +57,10 @@ class CyIF:
         # 2. Stage the config file
         config_file = Utils.stage_config_file(sample_name, raw_images_path, output_path, 
                                 output_resolution = output_resolution, 
-                                marker_name_list = [f'cycle_{i}' for i in range(int(n_images))], 
-                                technology = self.technology)
+                                marker_name_list = [f'cycle_{n}' for n in range(int(n_images))], 
+                                technology = self.technology,
+                                segmentation_model=segmentation_model
+                                )
         
         pixel_sizes_per_image = Utils.get_pixelsize(images_list, raw_images_path, config_file)
 
@@ -112,6 +118,7 @@ class CyIF:
         roi_index = paramaters_array[0]
         registered_masks = paramaters_array[1]
         mother_coordinates = paramaters_array[2]
+        segmentation_model = paramaters_array[4]
         
         # 1. Elastic registration is performed on the different dapi's channels
         registration = ElasticRegistration()
@@ -119,13 +126,20 @@ class CyIF:
         registered_rois, linear_shifts, visualization_figs, registered_dapis = registration.get_registered_dapis(mother_coordinates, registered_masks, roi_index)
         
         # 2. Segmentation only for DAPI channel
-        stardist = StardistSegmentation(model='IF')
-        stardist.set_parameters(self.config_file)
-        stardist_model = stardist.load_model()
+        if segmentation_model == 'stardist':
+            model = StardistSegmentation()
+            model.set_parameters(self.config_file)
+            model.write_thresholds()
+            model.load_model()
+
+        elif segmentation_model == 'cellpose':
+            model = CellposeSegmentation()
+            model.set_parameters(self.config_file)
+            model.load_model()
 
         composite = CompositeSegmentation()
         composite.set_parameters(self.config_file)
-        results = composite.predict_dapi(registered_dapis, roi_index, visualization_figs, stardist_model)
+        results = composite.predict_dapi(registered_dapis, roi_index, visualization_figs, model)
 
         # 3. Quantification
         tile_tissue_percentage = paramaters_array[3]

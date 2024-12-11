@@ -134,8 +134,13 @@ class Utils:
 
         with open(config_file, 'r+') as stream:
             config_data = yaml.safe_load(stream)
-            marco_output_path = config_data['directories']['marco_output']
-            sample_name = config_data['sample']['name']
+            try:
+                marco_output_path = config_data['directories']['marco_output']
+                sample_name = config_data['sample']['name']
+            except:
+                marco_output_path = config_data['directories']['sample_directory']
+                sample_name = config_data['sample']['sample_name']
+
            
         cores_map_file = os.path.join(marco_output_path, f'{sample_name}_cores_map.json')
         if os.path.exists(cores_map_file):
@@ -323,8 +328,6 @@ class Utils:
                 },
                 'segmentation': {
                     'segmentation_buffer': parameters['SEGMENTATION']['SEGMENTATION_BUFFER'],
-                    'prob': parameters['SEGMENTATION']['PROB'],
-                    'nms': parameters['SEGMENTATION']['NMS'],
                     'noise_threshold': parameters['SEGMENTATION']['NOISE_THRESHOLD'],
                     'perc_consensus': parameters['SEGMENTATION']['PERC_CONSENSUS'],
                     'cyto_distances': kwargs['cyto_distances'] if 'cyto_distances' in kwargs else ''  # user defined values
@@ -357,6 +360,17 @@ class Utils:
                 'raw_images_full_path': []
             }
         }
+        
+        if kwargs['segmentation_model']['model'] == 'stardist':
+            config_data['parameters']['segmentation']['model'] = 'stardist'
+            config_data['parameters']['segmentation']['prob'] = kwargs['segmentation_model']['stardist_prob']
+            config_data['parameters']['segmentation']['nms'] = kwargs['segmentation_model']['stardist_nms']
+            config_data['parameters']['segmentation']['pixel_size'] = kwargs['segmentation_model']['stardist_pixel_size']
+
+        elif kwargs['segmentation_model']['model'] == 'cellpose':
+            config_data['parameters']['segmentation']['model'] = 'cellpose'
+            config_data['parameters']['segmentation']['flow'] = kwargs['segmentation_model']['cellpose_flow']
+            config_data['parameters']['segmentation']['cell_diameter'] = kwargs['segmentation_model']['cellpose_diameter']
 
         config_file = os.path.join(marco_output_path, 'config.yaml')
 
