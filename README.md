@@ -55,7 +55,8 @@ docker run --rm --privileged tonistiigi/binfmt --install all
     ```sh
     docker pull igorafsouza/marqo:v1.0.0
     ``` 
-
+   ! Attention: If you pull the image, you can skip to step **6. Run the Docker**
+   
 4. **Or use Command Line from Terminal/Command Prompt**:
   ```sh
   wget https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/marqo-v1.0.0.tar.gz
