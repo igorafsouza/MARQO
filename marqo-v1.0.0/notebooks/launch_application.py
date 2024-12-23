@@ -1,6 +1,7 @@
 import warnings
 warnings.filterwarnings('ignore')
 
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 import sys
@@ -11,7 +12,7 @@ import threading
 import multiprocessing as mp
 import concurrent.futures
 from IPython.display import display, clear_output, Markdown
-from ipywidgets import Button, HBox, VBox, interact, interactive, fixed, interact_manual, Image, Layout, interactive_output, Output, Button, IntSlider, Box, Text, IntProgress, FloatText, ToggleButtons, BoundedFloatText
+from ipywidgets import Button, HBox, VBox, interact, interactive, fixed, interact_manual, Image, Layout, interactive_output, Output, Button, IntSlider, Box, Text, IntProgress, FloatText, ToggleButtons, BoundedFloatText, HTML
 from ipycanvas import MultiCanvas, hold_canvas, Canvas
 from time import time, sleep
 import queue
@@ -54,6 +55,55 @@ class Notebook:
     def __init__(self):
         self.analysis_output = Output()
         self.clustering_output = Output()
+
+    def generate_help_markdown(self):
+        help_content = """
+        <h3>Parameters Explanation</h3>
+        <h4>StarDist Parameters</h4>
+        <ul>
+            <li><b>Pixel Size</b> (<i>Expertise Needed: Low</i>): Defines the physical size of each pixel in the image (e.g., microns per pixel).<br>
+                <b>When to adjust?</b> Rarely. The pipeline default values will re-scale the input images to match the pixel size of the images used for training the Stardist predefined models.
+            </li>
+            <li><b>Probability Threshold</b> (<i>Expertise Needed: Moderate</i>): Minimum probability to detect objects. Typical values range from 0.25 - 0.90.<br>
+                <b>When to adjust?</b> When false positives or missed detections are frequent.
+            </li>
+            <li><b>NMS (Non-maximum suppression) Threshold</b> (<i>Expertise Needed: Moderate</i>): Controls how close two detected objects can be before being merged into one. Lower values are stricter. Typical values range from 0.3 to 0.7.<br>
+                <b>When to adjust?</b> When objects are merged incorrectly (e.g., touching cells).
+            </li>
+        </ul>
+        <h4>Cellpose Parameters</h4>
+        <ul>
+            <li><b>Flow</b> (<i>Expertise Needed: Moderate</i>): Determines the flow threshold, which controls how strict the model is when identifying the flow direction of each pixel. Higher values may detect more objects but increase false positives.<br>
+                <b>When to adjust?</b> If artifacts are misclassified as cells.
+            </li>
+            <li><b>Cell Diameter</b> (<i>Expertise Needed: Low</i>): The approximate size (diameter) of the cells in pixels. Default value of 0.0 allows the model to calculate the average size of cells.<br>
+                <b>When to adjust?</b> Rarely. If the objects are much larger or smaller than expected.
+            </li>
+        </ul>
+        <h4>General Recommendations</h4>
+        <table style="width:100%; border: 1px solid black; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid black; padding: 8px; text-align: left;">Model</th>
+                    <th style="border: 1px solid black; padding: 8px; text-align: left;">When to Change Parameters</th>
+                    <th style="border: 1px solid black; padding: 8px; text-align: left;">What to Watch For</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black; padding: 8px;">StarDist</td>
+                    <td style="border: 1px solid black; padding: 8px;">Adjust NMS threshold (Non-maximum suppression) if objects are too close and merging, or adjust Probability threshold if you want to capture weaker signals.</td>
+                    <td style="border: 1px solid black; padding: 8px;">If too many false positives, increase Probability threshold. If nearby objects are being merged, lower NMS threshold.</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black; padding: 8px;">Cellpose</td>
+                    <td style="border: 1px solid black; padding: 8px;">Adjust Cell Diameter if the cells are much larger or smaller than typical. Adjust Flow if cell shapes are very irregular or if you are targeting a specific cell population.</td>
+                    <td style="border: 1px solid black; padding: 8px;">If false positives occur, increase Flow. If large objects are missed, increase the Cell Diameter.</td>
+                </tr>
+            </tbody>
+        </table>
+        """
+        return HTML(value=help_content)
     
     def grab_instance(self, technology):
         # equivalent to a match/case statemet
@@ -191,7 +241,7 @@ class Notebook:
 
             # Create Segmentation Model ToggleButtons
             segmentation_model = ToggleButtons(
-                options=["Stardist", "Cellpose"],
+                options=["Stardist", "Cellpose", "Help"],
                 description="Segmentation Model",
                 button_style='',  # 'success', 'info', 'warning', 'danger' or ''
                 tooltips=["Select Stardist", "Select Cellpose"],
@@ -244,9 +294,14 @@ class Notebook:
                 if model_name == "Stardist":
                     # Update dynamic box with Stardist widgets
                     dynamic_box.children = [VBox([stardist_nms, stardist_prob, stardist_pixel_size])]
+
                 elif model_name == "Cellpose":
                     # Update dynamic box with Cellpose widgets
                     dynamic_box.children = [VBox([cellpose_diameter, cellpose_flow])]
+
+                elif model_name == "Help":
+                    # Populate the box with help markdown
+                    dynamic_box.children = [self.generate_help_markdown()]
 
             # Observe changes in the ToggleButtons
             def on_model_change(change):
@@ -263,8 +318,12 @@ class Notebook:
                 current_values = {k: v.value if hasattr(v, 'value') else v for k, v in widgs.items()}
                 current_values['segmentation'] = {'model': ''}
 
+                if segmentation_model.value == "Help":
+                    display(HTML("<p style='color: red; font-weight: bold;'>Please select a valid segmentation model (Stardist or Cellpose) before intializing.</p>"))
+                    return  # Stop the submission process
+
                 # Only include relevant segmentation model parameters
-                if segmentation_model.value == "Stardist":
+                elif segmentation_model.value == "Stardist":
                     current_values['segmentation_model'] = {'model': 'stardist'}
                     current_values['segmentation_model'].update({
                         "stardist_nms": stardist_nms.value,
