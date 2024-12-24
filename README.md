@@ -16,7 +16,7 @@ If Docker is not installed, follow the instructions for your operating system:
 
 2. **Install Docker Desktop**:
    - Run the installer and follow the on-screen instructions.
-   - For macOS, if you have an ARM-based Mac (like Apple M1/M2), ensure you download the version that supports ARM64.
+   - For macOS, if you have an ARM-based Mac (like Apple M series), ensure you download the version that supports ARM64.
 
 3. **Start Docker Desktop**:
    - Launch Docker Desktop from your applications menu.
@@ -36,7 +36,7 @@ If Docker is not installed, follow the instructions for your operating system:
 
 ### 2. Enable QEMU Emulation (for ARM64 users)
 
-If you are using an ARM64 architecture (e.g., Apple M1/M2), enable QEMU emulation to run AMD64 Docker images:
+If you are using an ARM64 architecture (e.g., Apple M series), enable QEMU emulation to run AMD64 Docker images:
 
 ```sh
 docker run --rm --privileged tonistiigi/binfmt --install all
