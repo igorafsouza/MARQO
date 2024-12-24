@@ -98,7 +98,7 @@ To run the Docker container and allow the Jupyter Notebook to access the local f
    - Make sure Docker is running
    - From the Terminal (in Linux or macOS) run:
      ```sh
-     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/data:/mnt/data marqo-v1.0.0
+     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/data:/mnt/data igorafsouza/marqo:v1.0.0
      ```
    - From the Command Prompt (Windows) run:
      ```sh
