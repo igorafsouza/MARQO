@@ -128,7 +128,7 @@ In the Review Application, use `/mnt/data/` as the base path.
    - "Path to sample folder": Specify the path to your sample folder starting from `/mnt/data` until the sample output folder (e.g. `/mnt/data/sample_name`).
 
 ### 8. Demo Videos
-Please, download the demo videos to use MARQO:
+Download the demo videos below on how to operate MARQO:
    - [Launch Application](https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/Buckup-et-al-2024_sup-video-1.mov)
    - [Review Application](https://github.com/igorafsouza/MARQO/releases/download/v1.0.0/Buckup-et-al-2024_sup-video-2.mov)
 
