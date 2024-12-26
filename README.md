@@ -46,10 +46,10 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 
 1. **Download directly**:
   - Go to [Releases](https://github.com/igorafsouza/MARQO/releases)
-  - Download `marqo-v1.0.0.tar.gz` (This compact version contains a single segmentation method - StarDist2D)
+  - Download `marqo-v1.0.0.tar.gz` (This compact version contains only StarDist2D as segmentation method - Recommended for machines up to 16 GB of RAM)
 
 2. **Pull Image from Docker Hub**:
-  - This image contains StarDist2D and Cellpose segmentation models
+  - This image contains StarDist2D and Cellpose as segmentation methods
   - On Terminal/Command Prompt execute:
     
     ```sh
