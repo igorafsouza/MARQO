@@ -97,10 +97,28 @@ docker run --rm --privileged tonistiigi/binfmt --install all
 To run the Docker container and allow the Jupyter Notebook to access the local files, you need to mount the directory containing your data/images. Replace `/path/to/your/data` with the full path of the directory on your local machine that contains the data/images you want to analyze.
    - Make sure Docker is running
    - From the Terminal (in Linux or macOS) run:
+     
+     If you pulled the image, use the fullname with the tag
+     
      ```sh
      docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/data:/mnt/data igorafsouza/marqo:v1.0.0
      ```
+
+     If you downloaded from Releases, and manually loaded the image, use
+
+     ```sh
+     docker run --platform linux/amd64 -p 8888:8888 -v /path/to/your/data:/mnt/data marqo-v1.0.0
+     ```
+     
    - From the Command Prompt (Windows) run:
+     
+     If you pulled the image, use the fullname with the tag
+     ```sh
+     docker run --platform linux/amd64 -p 8888:8888 -v "C:\path\to\your\data:/mnt/data" igorafsouza/marqo:v1.0.0
+     ```
+     
+     If you downloaded from Releases, and manually loaded the image, use
+     
      ```sh
      docker run --platform linux/amd64 -p 8888:8888 -v "C:\path\to\your\data:/mnt/data" marqo-v1.0.0
      ```
