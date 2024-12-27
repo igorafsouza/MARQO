@@ -42,6 +42,8 @@ If you are using an ARM64 architecture (e.g., Apple M series), enable QEMU emula
 docker run --rm --privileged tonistiigi/binfmt --install all
 ```
 
+You may need to select "QEMU (Legacy)" as your Virtual Machine Manager (VMM) in the Docker Desktop application settings, if not defaulted already.
+
 ### 3. Download MARQO Docker
 
 1. **Download directly**:
